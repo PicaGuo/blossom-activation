@@ -29,7 +29,6 @@ export default function DashboardPage() {
     const supabase = createClient()
 
     const fetchData = async () => {
-      // 1. 获取当前用户
       const { data: userData, error: authError } = await supabase.auth.getUser()
       if (authError || !userData?.user) {
         setError('Please login first')
@@ -43,9 +42,9 @@ export default function DashboardPage() {
         setLoading(false)
         return
       }
+
       setUserEmail(email)
 
-      // 2. 获取 profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -58,7 +57,6 @@ export default function DashboardPage() {
         return
       }
 
-      // 3. 获取 deal_creators 数据
       const { data: dealData, error: queryError } = await supabase
         .from('deal_creators')
         .select(`
@@ -106,7 +104,6 @@ export default function DashboardPage() {
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 40 }}>
       <h1 style={{ fontSize: 24, fontWeight: 'bold' }}>📋 Your Brand Deals</h1>
       <p style={{ color: '#4b5563', marginBottom: 20 }}>Welcome back, {userEmail}!</p>
-
       {deals.length === 0 ? (
         <p>You haven't joined any campaigns yet.</p>
       ) : (
