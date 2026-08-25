@@ -27,35 +27,39 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data, error }) => {
-      if (error || !data.user) {
+
+    const fetchData = async () => {
+      // 1. 获取当前用户
+      const { data: userData, error: authError } = await supabase.auth.getUser()
+      if (authError || !userData?.user) {
         setError('Please login first')
         setLoading(false)
         return
       }
 
-      const email = data.user.email
+      const email = userData.user.email
       if (!email) {
         setError('No email found')
         setLoading(false)
         return
       }
-
       setUserEmail(email)
 
-      const { data: profile, error: profileError } = await supabase
+      // 2. 获取 profile
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
         .maybeSingle()
 
-      if (profileError || !profile) {
+      if (profileError || !profileData) {
         setError('Profile not found. Please activate a deal first.')
         setLoading(false)
         return
       }
 
-      const { data, error: queryError } = await supabase
+      // 3. 获取 deal_creators 数据
+      const { data: dealData, error: queryError } = await supabase
         .from('deal_creators')
         .select(`
           status,
@@ -69,7 +73,7 @@ export default function DashboardPage() {
             created_at
           )
         `)
-        .eq('creator_id', profile.id)
+        .eq('creator_id', profileData.id)
         .order('created_at', { ascending: false })
 
       if (queryError) {
@@ -78,14 +82,16 @@ export default function DashboardPage() {
         return
       }
 
-      const formatted = data.map((item: any) => ({
+      const formatted = dealData.map((item: any) => ({
         deal: item.deal,
         creator_status: item.status
       }))
 
       setDeals(formatted)
       setLoading(false)
-    })
+    }
+
+    fetchData()
   }, [])
 
   if (loading) {
