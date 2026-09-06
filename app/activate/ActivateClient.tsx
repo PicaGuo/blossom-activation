@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import OrderList from '@/app/components/OrderList'
 
 interface Deal {
   id: string
@@ -13,6 +12,8 @@ interface Deal {
   requirements: string
   status: string
   created_at: string
+  brand_feedback?: string | null
+  brand_feedback_comment?: string | null
 }
 
 interface CreatorDeal {
@@ -78,7 +79,9 @@ export default function ActivateClient() {
           budget,
           requirements,
           status,
-          created_at
+          created_at,
+          brand_feedback,
+          brand_feedback_comment
         )
       `)
       .eq('creator_id', profile.id)
@@ -166,9 +169,9 @@ export default function ActivateClient() {
       .eq('deal_id', dealId)
       .eq('creator_email', activatedEmail)
     if (error) {
-      alert('提交失败：' + error.message)
+      alert('Submission failed: ' + error.message)
     } else {
-      alert('✅ 报价已提交！')
+      alert('✅ Quote submitted successfully!')
       const allDeals = await fetchAllDeals(activatedEmail!)
       setDeals(allDeals)
       setQuotedRate('')
@@ -241,7 +244,7 @@ export default function ActivateClient() {
   const activeDeal = deals.find(d => d.deal.id === justActivatedDealId)
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 40 }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: 40 }}>
       <h1 style={{ fontSize: 24, fontWeight: 'bold' }}>🎉 Welcome, {activatedEmail || 'Creator'}!</h1>
       <p style={{ color: '#4b5563', marginBottom: 20 }}>
         You have successfully activated your account. Here are all your brand deals:
@@ -254,10 +257,53 @@ export default function ActivateClient() {
         </div>
       )}
 
-      {/* ✅ 使用 OrderList 组件展示订单列表 */}
-      {deals.length > 0 && <OrderList deals={deals} userEmail={activatedEmail} />}
+      {deals.length === 0 ? (
+        <p>No deals found.</p>
+      ) : (
+        <div style={{ background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Brand</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Product</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Budget</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deals.map((item) => (
+                <tr key={item.deal.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{item.deal.brand_name}</td>
+                  <td style={{ padding: '12px 16px' }}>{item.deal.product_name || '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>{item.deal.budget ? `$${item.deal.budget}` : '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: 12,
+                      fontSize: 12,
+                      background: item.creator_status === 'accepted' ? '#d1fae5' : item.creator_status === 'active' ? '#dbeafe' : '#fef3c7',
+                      color: item.creator_status === 'accepted' ? '#065f46' : item.creator_status === 'active' ? '#1e40af' : '#92400e'
+                    }}>
+                      {item.creator_status || 'pending'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* 报价表单（仅针对当前激活的订单） */}
+      {/* 品牌反馈显示 */}
+      {activeDeal?.deal.brand_feedback && (
+        <div style={{ marginTop: 24, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#1e40af' }}>Brand Feedback:</p>
+          <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#374151' }}>
+            {activeDeal.deal.brand_feedback_comment || activeDeal.deal.brand_feedback}
+          </p>
+        </div>
+      )}
+
       {activeDeal && (
         <div style={{ background: '#f9fafb', padding: 20, borderRadius: 8, marginTop: 24 }}>
           <h3 style={{ margin: '0 0 8px 0' }}>💰 Submit your quote for {activeDeal.deal.brand_name}</h3>
