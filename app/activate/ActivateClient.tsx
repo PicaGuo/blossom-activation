@@ -64,11 +64,10 @@ export default function ActivateClient() {
 
     const { data: creators, error: cError } = await supabase
       .from('deal_creators')
-      .select('deal_id, status, budget, brand_feedback, brand_feedback_comment')
+      .select('*')
       .eq('creator_email', email)
 
     if (cError || !creators || creators.length === 0) {
-      console.log('deal_creators 没有记录')
       return []
     }
 
@@ -80,7 +79,6 @@ export default function ActivateClient() {
       .in('id', dealIds)
 
     if (dError || !dealsData) {
-      console.log('deals 表没有数据')
       return []
     }
 
