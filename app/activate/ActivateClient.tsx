@@ -62,48 +62,51 @@ export default function ActivateClient() {
   const fetchAllDeals = async (email: string) => {
     const supabase = createClient()
 
-    const { data, error } = await supabase
+    // 第一步：查 deal_creators
+    const { data: creators, error: cError } = await supabase
       .from('deal_creators')
-      .select(`
-        status,
-        deal:deals (
-          id,
-          brand_name,
-          product_name,
-          budget,
-          requirements,
-          status,
-          created_at,
-          brand_feedback,
-          brand_feedback_comment
-        )
-      `)
+      .select('deal_id, status, brand_feedback, brand_feedback_comment')
       .eq('creator_email', email)
-      .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('fetchAllDeals error:', error)
+    if (cError || !creators || creators.length === 0) {
+      console.log('deal_creators 没有记录')
       return []
     }
 
-    if (!data || data.length === 0) {
+    // 第二步：提取所有 deal_id
+    const dealIds = creators.map(c => c.deal_id)
+
+    // 第三步：查 deals 表
+    const { data: dealsData, error: dError } = await supabase
+      .from('deals')
+      .select('*')
+      .in('id', dealIds)
+
+    if (dError || !dealsData) {
+      console.log('deals 表没有数据')
       return []
     }
 
-    return data.map((item: any) => ({
-      deal: {
-        id: item.deal.id,
-        brand_name: item.deal.brand_name,
-        product_name: item.deal.product_name,
-        budget: item.deal.budget,
-        requirements: item.deal.requirements,
-        status: item.deal.status,
-        created_at: item.deal.created_at,
-        brand_feedback: item.deal.brand_feedback,
-        brand_feedback_comment: item.deal.brand_feedback_comment
-      },
-      creator_status: item.status
-    }))
+    // 第四步：合并数据
+    const merged = creators.map(creator => {
+      const deal = dealsData.find(d => d.id === creator.deal_id)
+      return {
+        deal: {
+          id: deal?.id || creator.deal_id,
+          brand_name: deal?.brand_name || 'Unknown Brand',
+          product_name: deal?.product_name || '',
+          budget: deal?.budget || 0,
+          requirements: deal?.requirements || '',
+          status: deal?.status || 'active',
+          created_at: deal?.created_at || new Date().toISOString(),
+          brand_feedback: creator.brand_feedback || null,
+          brand_feedback_comment: creator.brand_feedback_comment || null
+        },
+        creator_status: creator.status
+      }
+    })
+
+    return merged
   }
 
   const activateCampaign = async (email: string) => {
@@ -306,7 +309,6 @@ export default function ActivateClient() {
         </div>
       )}
 
-      {/* 品牌反馈显示 */}
       {activeDeal?.deal.brand_feedback && (
         <div style={{ marginTop: 24, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
           <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#1e40af' }}>Brand Feedback:</p>
