@@ -62,7 +62,6 @@ export default function ActivateClient() {
   const fetchAllDeals = async (email: string) => {
     const supabase = createClient()
 
-    // 第一步：查 deal_creators
     const { data: creators, error: cError } = await supabase
       .from('deal_creators')
       .select('deal_id, status, budget, brand_feedback, brand_feedback_comment')
@@ -73,10 +72,8 @@ export default function ActivateClient() {
       return []
     }
 
-    // 第二步：提取所有 deal_id
     const dealIds = creators.map(c => c.deal_id)
 
-    // 第三步：查 deals 表
     const { data: dealsData, error: dError } = await supabase
       .from('deals')
       .select('*')
@@ -87,7 +84,6 @@ export default function ActivateClient() {
       return []
     }
 
-    // 第四步：合并数据
     const merged = creators.map(creator => {
       const deal = dealsData.find(d => d.id === creator.deal_id)
       return {
@@ -155,7 +151,7 @@ export default function ActivateClient() {
       } else if (creator.status === 'pending') {
         await supabase
           .from('deal_creators')
-          .update({ 
+          .update({
             status: 'active',
             budget: 1100,
             brand_feedback: 'waitlist',
@@ -241,4 +237,114 @@ export default function ActivateClient() {
         )}
         <form onSubmit={handleEmailSubmit}>
           <input
-           
+            type="email"
+            placeholder="your@email.com"
+            value={inputEmail}
+            onChange={(e) => setInputEmail(e.target.value)}
+            style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 6, marginBottom: 12 }}
+            required
+          />
+          <button
+            type="submit"
+            disabled={activating}
+            style={{ width: '100%', padding: 10, background: '#3b82f6', color: 'white', borderRadius: 6, border: 'none', cursor: 'pointer' }}
+          >
+            {activating ? 'Activating...' : 'Activate'}
+          </button>
+        </form>
+      </div>
+    )
+  }
+
+  if (deals.length === 0 && !activatedEmail) {
+    return <div style={{ padding: 40, textAlign: 'center' }}>No campaigns found</div>
+  }
+
+  const activeDeal = deals.find(d => d.deal.id === justActivatedDealId)
+
+  return (
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: 40 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 'bold' }}>🎉 Welcome, {activatedEmail || 'Creator'}!</h1>
+      <p style={{ color: '#4b5563', marginBottom: 20 }}>
+        You have successfully activated your account. Here are all your brand deals:
+      </p>
+
+      {activeDeal && (
+        <div style={{ background: '#e0f2fe', border: '2px solid #3b82f6', padding: 16, borderRadius: 8, marginBottom: 24 }}>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>✅ Just activated:</p>
+          <p style={{ margin: 0 }}><strong>{activeDeal.deal.brand_name}</strong> — {activeDeal.deal.product_name || 'No product'}</p>
+        </div>
+      )}
+
+      {deals.length === 0 ? (
+        <p>No deals found.</p>
+      ) : (
+        <div style={{ background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <tr>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Brand</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Product</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Budget</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deals.map((item) => (
+                <tr key={item.deal.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{item.deal.brand_name}</td>
+                  <td style={{ padding: '12px 16px' }}>{item.deal.product_name || '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>{item.deal.budget ? `$${item.deal.budget}` : '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      borderRadius: 12,
+                      fontSize: 12,
+                      background: item.creator_status === 'accepted' ? '#d1fae5' : item.creator_status === 'active' ? '#dbeafe' : '#fef3c7',
+                      color: item.creator_status === 'accepted' ? '#065f46' : item.creator_status === 'active' ? '#1e40af' : '#92400e'
+                    }}>
+                      {item.creator_status || 'pending'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeDeal?.deal.brand_feedback && (
+        <div style={{ marginTop: 24, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#1e40af' }}>Brand Feedback:</p>
+          <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#374151' }}>
+            {activeDeal.deal.brand_feedback_comment || activeDeal.deal.brand_feedback}
+          </p>
+        </div>
+      )}
+
+      {activeDeal && (
+        <div style={{ background: '#f9fafb', padding: 20, borderRadius: 8, marginTop: 24 }}>
+          <h3 style={{ margin: '0 0 8px 0' }}>💰 Submit your quote for {activeDeal.deal.brand_name}</h3>
+          <p style={{ margin: '0 0 12px 0', fontSize: 14, color: '#4b5563' }}>
+            Requirements: {activeDeal.deal.requirements || 'No specific requirements'}
+          </p>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <input
+              type="number"
+              placeholder="Your rate (USD)"
+              value={quotedRate}
+              onChange={(e) => setQuotedRate(e.target.value)}
+              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 6, flex: 1 }}
+            />
+            <button
+              onClick={() => handleSubmitQuote(activeDeal.deal.id, quotedRate)}
+              style={{ padding: '8px 20px', background: '#3b82f6', color: 'white', borderRadius: 6, border: 'none', cursor: 'pointer' }}
+            >
+              Submit Quote
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
