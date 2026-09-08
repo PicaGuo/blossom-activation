@@ -88,8 +88,19 @@ export default function ActivateClient() {
       .order('created_at', { ascending: false })
 
     if (error) return []
+
     return data.map((item: any) => ({
-      deal: item.deal,
+      deal: {
+        id: item.deal.id,
+        brand_name: item.deal.brand_name,
+        product_name: item.deal.product_name,
+        budget: item.deal.budget,
+        requirements: item.deal.requirements,
+        status: item.deal.status,
+        created_at: item.deal.created_at,
+        brand_feedback: item.deal.brand_feedback,
+        brand_feedback_comment: item.deal.brand_feedback_comment
+      },
       creator_status: item.status
     }))
   }
