@@ -61,12 +61,6 @@ export default function ActivateClient() {
 
   const fetchAllDeals = async (email: string) => {
     const supabase = createClient()
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
-    if (profileError || !profile) return []
 
     const { data, error } = await supabase
       .from('deal_creators')
@@ -84,10 +78,17 @@ export default function ActivateClient() {
           brand_feedback_comment
         )
       `)
-      .eq('creator_id', profile.id)
+      .eq('creator_email', email)
       .order('created_at', { ascending: false })
 
-    if (error) return []
+    if (error) {
+      console.error('fetchAllDeals error:', error)
+      return []
+    }
+
+    if (!data || data.length === 0) {
+      return []
+    }
 
     return data.map((item: any) => ({
       deal: {
@@ -125,7 +126,7 @@ export default function ActivateClient() {
         .from('deal_creators')
         .select('*')
         .eq('deal_id', dealData.id)
-        .eq('creator_id', creatorId)
+        .eq('creator_email', email)
         .maybeSingle()
 
       if (creatorError && creatorError.code !== 'PGRST116') {
