@@ -137,10 +137,7 @@ export default function ActivateClient() {
             deal_id: dealData.id,
             creator_id: creatorId,
             creator_email: email,
-            status: 'active',
-            budget: 1100,
-            brand_feedback: 'waitlist',
-            brand_feedback_comment: 'We have kept your profile in the waitlist for future brand matches.'
+            status: 'active'
           })
           .select()
           .single()
@@ -149,12 +146,7 @@ export default function ActivateClient() {
       } else if (creator.status === 'pending') {
         await supabase
           .from('deal_creators')
-          .update({
-            status: 'active',
-            budget: 1100,
-            brand_feedback: 'waitlist',
-            brand_feedback_comment: 'We have kept your profile in the waitlist for future brand matches.'
-          })
+          .update({ status: 'active' })
           .eq('id', creator.id)
         creator.status = 'active'
       }
@@ -285,6 +277,7 @@ export default function ActivateClient() {
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Product</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Budget</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Status</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: '#6b7280' }}>Feedback</th>
               </tr>
             </thead>
             <tbody>
@@ -304,19 +297,13 @@ export default function ActivateClient() {
                       {item.creator_status || 'pending'}
                     </span>
                   </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: '#374151', maxWidth: 250 }}>
+                    {item.deal.brand_feedback_comment || item.deal.brand_feedback || '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {activeDeal?.deal.brand_feedback && (
-        <div style={{ marginTop: 24, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
-          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#1e40af' }}>Brand Feedback:</p>
-          <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#374151' }}>
-            {activeDeal.deal.brand_feedback_comment || activeDeal.deal.brand_feedback}
-          </p>
         </div>
       )}
 
