@@ -8,6 +8,7 @@ export default function AdminPage() {
     product_name: '',
     budget: '',
     requirements: '',
+    brief_url: '',
     emails: ''
   })
   const [loading, setLoading] = useState(false)
@@ -38,6 +39,7 @@ export default function AdminPage() {
           product_name: form.product_name,
           budget: form.budget,
           requirements: form.requirements,
+          brief_url: form.brief_url,
           emails: emailList
         })
       })
@@ -68,63 +70,31 @@ export default function AdminPage() {
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">品牌名称 *</label>
-          <input
-            type="text"
-            required
-            className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="Nike"
-            value={form.brand_name}
-            onChange={(e) => setForm({ ...form, brand_name: e.target.value })}
-          />
+          <input type="text" required className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="Nike" value={form.brand_name} onChange={(e) => setForm({ ...form, brand_name: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">产品/项目</label>
-          <input
-            type="text"
-            className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="Air Max 推广"
-            value={form.product_name}
-            onChange={(e) => setForm({ ...form, product_name: e.target.value })}
-          />
+          <input type="text" className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="Air Max 推广" value={form.product_name} onChange={(e) => setForm({ ...form, product_name: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">预算 (USD)</label>
-          <input
-            type="number"
-            className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="5000"
-            value={form.budget}
-            onChange={(e) => setForm({ ...form, budget: e.target.value })}
-          />
+          <input type="number" className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="5000" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">要求</label>
-          <input
-            type="text"
-            className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="拍摄2条视频"
-            value={form.requirements}
-            onChange={(e) => setForm({ ...form, requirements: e.target.value })}
-          />
+          <input type="text" className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="拍摄2条视频" value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Deal Brief 链接（Google Doc）</label>
+          <input type="url" className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="https://docs.google.com/document/d/..." value={form.brief_url} onChange={(e) => setForm({ ...form, brief_url: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">达人邮箱列表 *</label>
-          <textarea
-            required
-            rows={5}
-            className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2"
-            placeholder="每行一个邮箱&#10;creator1@gmail.com&#10;creator2@gmail.com"
-            value={form.emails}
-            onChange={(e) => setForm({ ...form, emails: e.target.value })}
-          />
+          <textarea required rows={5} className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="每行一个邮箱" value={form.emails} onChange={(e) => setForm({ ...form, emails: e.target.value })} />
           <p className="text-xs text-gray-400 mt-1">每行一个邮箱，可批量粘贴</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:bg-gray-400"
-        >
+        <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:bg-gray-400">
           {loading ? '生成中...' : '✨ 创建 Campaign 并生成链接'}
         </button>
       </form>
@@ -135,7 +105,6 @@ export default function AdminPage() {
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-green-700 font-medium mb-2">✅ 通用链接已生成：</p>
           <input readOnly className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm" value={baseLink} />
-          <p className="text-xs text-gray-500 mt-1">此链接可分享给任何人，未带邮箱时需输入邮箱。</p>
           <div className="mt-4">
             <p className="font-medium text-gray-700">每个达人的专属链接（带邮箱）：</p>
             <div className="max-h-60 overflow-y-auto">
